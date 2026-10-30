@@ -7,7 +7,4 @@ properties:
     pattern: "^[^/]+$"
   fastq_1:
     type: string
-  fastq_2:
-    type: string
-    description: R2, for paired-end data
 required: [sample_id, fastq_1]
