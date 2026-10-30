@@ -1,0 +1,13 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+description: One row of samples.tsv. Other columns are allowed and ignored.
+type: object
+properties:
+  sample_id:
+    type: string
+    pattern: "^[^/]+$"
+  fastq_1:
+    type: string
+  fastq_2:
+    type: string
+    description: R2, for paired-end data
+required: [sample_id, fastq_1]

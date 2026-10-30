@@ -1,0 +1,14 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+description: wf-disomeseq-align configuration
+type: object
+properties:
+  samples:
+    type: string
+    description: path to samples.tsv
+  RESULTS_DIR:
+    type: string
+    default: results
+  LOG_DIR:
+    type: string
+    default: logs
+required: [samples]

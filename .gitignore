@@ -218,3 +218,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# agents
+CLAUDE.md
+PLAN.md
+
+# local
+data/
+results/
+logs/
+config/local/
+.snakemake/

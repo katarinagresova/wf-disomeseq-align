@@ -1,0 +1,10 @@
+# Disome-seq alignment workflow.
+
+configfile: "config/config.yaml"
+
+include: "rules/common.smk"
+
+
+rule all:
+    input:
+        [],

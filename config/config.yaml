@@ -1,0 +1,7 @@
+# wf-disomeseq-align configuration. Paths are relative to where snakemake runs.
+# For your own data, copy this file, edit it and run:
+#   snakemake --configfile path/to/your/config.yaml
+
+samples: "config/samples.tsv"
+RESULTS_DIR: "results"
+LOG_DIR: "logs"
