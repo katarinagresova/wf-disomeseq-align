@@ -7,4 +7,7 @@ properties:
     pattern: "^[^/]+$"
   fastq_1:
     type: string
-required: [sample_id, fastq_1]
+  condition:
+    type: string
+    description: library preparation or treatment; the comparison groups libraries by it
+required: [sample_id, fastq_1, condition]

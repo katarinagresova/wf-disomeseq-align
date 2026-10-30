@@ -1,6 +1,14 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
 description: wf-disomeseq-align configuration
 type: object
+definitions:
+  length_range:
+    type: array
+    items:
+      type: integer
+      minimum: 1
+    minItems: 2
+    maxItems: 2
 properties:
   samples:
     type: string
@@ -11,4 +19,41 @@ properties:
   LOG_DIR:
     type: string
     default: logs
-required: [samples]
+  adapter:
+    type: string
+    description: 3' adapter, trimmed off the reads
+  randomer_5p:
+    type: integer
+    minimum: 0
+    description: random nt at the 5' end of the read
+  randomer_3p:
+    type: integer
+    minimum: 0
+    description: random nt before the adapter
+  minlength:
+    type: integer
+    minimum: 1
+    description: shortest footprint (random nt removed) that is aligned
+  disome_lengths:
+    $ref: "#/definitions/length_range"
+    description: shortest and longest disome footprint
+  gel_lengths:
+    $ref: "#/definitions/length_range"
+    description: footprint lengths cut from the gel
+  genome_fa:
+    type: string
+  annotation_gtf:
+    type: string
+  contaminant_fastas:
+    type: object
+    description: contaminant type -> list of fasta paths
+    # the type is part of the record names (<n>_<type>_<id>)
+    propertyNames:
+      pattern: "^[A-Za-z0-9]+$"
+    additionalProperties:
+      type: array
+      items:
+        type: string
+    default: {}
+required: [samples, adapter, randomer_5p, randomer_3p, minlength, disome_lengths, gel_lengths, genome_fa,
+           annotation_gtf]

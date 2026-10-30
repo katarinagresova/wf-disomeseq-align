@@ -5,3 +5,32 @@
 samples: "config/samples.tsv"
 RESULTS_DIR: "results"
 LOG_DIR: "logs"
+
+# Read preprocessing (trim.smk). R1 is
+#   5'-[randomer_5p random nt]-[footprint]-[randomer_3p random nt]-adapter-3'
+# The random nt are UMIs: identical reads are collapsed before they are removed.
+# minlength: the shortest footprint (random nt removed) that is aligned.
+adapter: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+randomer_5p: 4
+randomer_3p: 4
+minlength: 25
+
+# Footprint lengths (nt) of disomes, used by the QC and the comparison:
+# disome_lengths are counted as disome footprints, gel_lengths is the size
+# range cut from the gel.
+disome_lengths: [45, 75]
+gel_lengths: [50, 70]
+
+# Reference (reference.smk): genome fasta and its GTF annotation (NCBI RefSeq
+# GTF: transcript_biotype, CDS + stop_codon features). One transcript for each
+# protein-coding gene is aligned to; the rRNA, tRNA, snRNA, snoRNA, scaRNA and
+# miRNA of the annotation are contaminants.
+genome_fa: "/path/to/genome.fa"
+annotation_gtf: "/path/to/annotation.gtf"
+
+# More contaminants (contaminants.smk), by type: the type names the read class
+# in the QC. Both strands of each sequence are added (mtDNA is transcribed
+# from both).
+contaminant_fastas:
+  mt: ["/path/to/mtDNA.fa"]
+  rRNA: ["/path/to/rDNA.fa"]

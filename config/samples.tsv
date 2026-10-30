@@ -1,3 +1,3 @@
-sample_id	fastq_1
-sample1	/path/to/data/sample1_R1.fastq.gz
-sample2	/path/to/data/sample2_R1.fastq.gz
+sample_id	fastq_1	condition
+sample1	/path/to/data/sample1_R1.fastq.gz	A
+sample2	/path/to/data/sample2_R1.fastq.gz	B
