@@ -19,3 +19,10 @@ if samples.index.duplicated().any():
 # {sample} only ever matches a whole sample_id
 wildcard_constraints:
     sample="|".join(re.escape(s) for s in samples.index),
+
+# Optional spike-in species (config spike_in): its transcripts are aligned to
+# with the main ones; its reads get their own BAM.
+SPECIES = ["main", "spike_in"] if "spike_in" in config else ["main"]
+
+wildcard_constraints:
+    species="main|spike_in",

@@ -1,10 +1,11 @@
 """Transcripts to align to and ncRNA contaminants, from a genome fasta and its NCBI RefSeq GTF.
 
 Protein-coding (transcript_biotype mRNA): one transcript for each gene. A candidate has a complete
-CDS: not partial, CDS + stop_codon contiguous on the transcript, a multiple of 3 long, ATG start,
+CDS: CDS + stop_codon contiguous on the transcript, a multiple of 3 long, ATG start,
 TAA / TAG / TGA stop and no stop before it. The last excludes the models that NCBI corrected for
 genome errors ("unclassified transcription discrepancy": the genome sequence has a frameshift) and
-selenoproteins. Of the candidates: the longest CDS, then the longest transcript, then the
+selenoproteins. The GTF's partial flag is not used: it also marks complete CDSs without annotated UTRs
+(e.g. all of yeast). Of the candidates: the longest CDS, then the longest transcript, then the
 smallest transcript_id. Genes without a candidate are left out (counted in the log).
 
 ncRNA contaminants: the transcripts with transcript_biotype rRNA, tRNA or a structured ncRNA (NCRNA_TYPES),
@@ -46,7 +47,7 @@ def read_gtf(path):
             interval = (int(start) - 1, int(end))  # 0-based, end exclusive
             if feature == "transcript":
                 info[tx] = {"chrom": chrom, "strand": strand, "gene_id": attrs["gene_id"],
-                            "biotype": attrs.get("transcript_biotype"), "partial": attrs.get("partial") == "true"}
+                            "biotype": attrs.get("transcript_biotype")}
             elif feature == "exon":
                 exons[tx].append((chrom, strand, interval))
             else:
@@ -101,8 +102,8 @@ def main():
                 log[f"not used: biotype {t['biotype']}"] += 1
                 continue
             log["mRNA"] += 1
-            if t["partial"] or not cds[tx]:
-                log["mRNA not a candidate: partial or no CDS"] += 1
+            if not cds[tx]:
+                log["mRNA not a candidate: no CDS"] += 1
                 continue
             span = cds_span(t["strand"], intervals, cds[tx])
             if span is None:

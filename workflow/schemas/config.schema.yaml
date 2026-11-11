@@ -44,6 +44,16 @@ properties:
     type: string
   annotation_gtf:
     type: string
+  spike_in:
+    type: object
+    description: optional spike-in species, aligned to with the main one
+    properties:
+      genome_fa:
+        type: string
+      annotation_gtf:
+        type: string
+    required: [genome_fa, annotation_gtf]
+    additionalProperties: false
   contaminant_fastas:
     type: object
     description: contaminant type -> list of fasta paths

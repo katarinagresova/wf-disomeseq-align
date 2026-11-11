@@ -28,9 +28,19 @@ gel_lengths: [50, 70]
 genome_fa: "/path/to/genome.fa"
 annotation_gtf: "/path/to/annotation.gtf"
 
+# Optional spike-in species (e.g. a yeast lysate): genome fasta and NCBI RefSeq
+# GTF, as for the main species. Its transcripts are aligned to with the main
+# ones; its reads get their own BAM (bowtie/spike_in/). Its rRNA is not in the
+# annotation's contaminants: add it to contaminant_fastas.
+# spike_in:
+#   genome_fa: "/path/to/spike_in_genome.fa"
+#   annotation_gtf: "/path/to/spike_in_annotation.gtf"
+
 # More contaminants (contaminants.smk), by type: the type is the read class of
 # the reads that align to them. Both strands of each sequence are added (mtDNA
 # is transcribed from both).
-contaminant_fastas:
-  mt: ["/path/to/mtDNA.fa"]
-  rRNA: ["/path/to/rDNA.fa"]
+# (Commented out: this file is merged into a config given with --configfile,
+# so a type set here would stay in every run.)
+# contaminant_fastas:
+#   mt: ["/path/to/mtDNA.fa"]
+#   rRNA: ["/path/to/rDNA.fa"]

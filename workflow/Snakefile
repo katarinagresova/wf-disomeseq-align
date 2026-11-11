@@ -13,6 +13,6 @@ include: "rules/multiqc.smk"
 
 rule all:
     input:
-        expand(f"{RESULTS_DIR}/bowtie/{{sample}}.bam", sample=samples.index),
+        expand(f"{RESULTS_DIR}/bowtie/{{species}}/{{sample}}.bam", species=SPECIES, sample=samples.index),
         expand(f"{RESULTS_DIR}/fastqc/{{stage}}/{{sample}}_fastqc.html", stage=["raw", "trimmed"], sample=samples.index),
         f"{RESULTS_DIR}/multiqc/multiqc_report.html",
