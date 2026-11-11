@@ -13,7 +13,7 @@ named <type>_<transcript_id>, type rRNA, tRNA or ncRNA (build_contaminants.py). 
 isoforms of coding genes) and the other biotypes are not contaminants; the log counts them.
 
 Writes transcripts.fa (>transcript_id), transcripts.tsv (transcript_id, gene_id, length, cds_start,
-cds_end: 0-based on the transcript, end exclusive, stop codon included) and ncrna.fa. pysam indexes
+cds_end: 0-based on the transcript, end exclusive, stop codon included; exons) and ncrna.fa. pysam indexes
 the genome (.fai next to it) if it has no index.
 
 Usage: extract_transcripts.py <genome.fa> <annotation.gtf> <transcripts.fa> <transcripts.tsv> <ncrna.fa>
@@ -117,17 +117,17 @@ def main():
             if any(seq[i:i + 3] in STOPS for i in range(start, end - 3, 3)):
                 log["mRNA not a candidate: stop codon inside the CDS"] += 1
                 continue
-            candidates[t["gene_id"]].append(((-(end - start), -len(seq), tx), tx, seq, start, end))
+            candidates[t["gene_id"]].append(((-(end - start), -len(seq), tx), tx, seq, start, end, len(intervals)))
 
     genes = {t["gene_id"] for t in info.values() if t["biotype"] == "mRNA"}
     log["protein-coding genes"] = len(genes)
     log["protein-coding genes without a candidate (left out)"] = len(genes - candidates.keys())
     with open(out_fa, "w") as fa, open(out_tsv, "w") as tsv:
-        tsv.write("transcript_id\tgene_id\tlength\tcds_start\tcds_end\n")
+        tsv.write("transcript_id\tgene_id\tlength\tcds_start\tcds_end\texons\n")
         for gene in sorted(candidates):
-            _, tx, seq, start, end = min(candidates[gene])
+            _, tx, seq, start, end, n_exons = min(candidates[gene])
             fa.write(f">{tx}\n{seq}\n")
-            tsv.write(f"{tx}\t{gene}\t{len(seq)}\t{start}\t{end}\n")
+            tsv.write(f"{tx}\t{gene}\t{len(seq)}\t{start}\t{end}\t{n_exons}\n")
             log["transcripts written"] += 1
     for key, n in sorted(log.items()):
         print(f"{key}\t{n}", file=sys.stderr)
