@@ -7,9 +7,9 @@ genome errors ("unclassified transcription discrepancy": the genome sequence has
 selenoproteins. Of the candidates: the longest CDS, then the longest transcript, then the
 smallest transcript_id. Genes without a candidate are left out (counted in the log).
 
-ncRNA contaminants: the transcripts with transcript_biotype rRNA, tRNA, snRNA, snoRNA, guide_RNA
-(scaRNA) or miRNA, named <type>_<transcript_id>, type rRNA, tRNA or ncRNA (build_contaminants.py).
-lnc_RNA and misc_RNA (non-coding isoforms of coding genes) are not contaminants.
+ncRNA contaminants: the transcripts with transcript_biotype rRNA, tRNA or a structured ncRNA (NCRNA_TYPES),
+named <type>_<transcript_id>, type rRNA, tRNA or ncRNA (build_contaminants.py). lnc_RNA, misc_RNA (non-coding
+isoforms of coding genes) and the other biotypes are not contaminants; the log counts them.
 
 Writes transcripts.fa (>transcript_id), transcripts.tsv (transcript_id, gene_id, length, cds_start,
 cds_end: 0-based on the transcript, end exclusive, stop codon included) and ncrna.fa. pysam indexes
@@ -23,8 +23,9 @@ from collections import Counter, defaultdict
 
 import pysam
 
-NCRNA_TYPES = {"rRNA": "rRNA", "tRNA": "tRNA", "snRNA": "ncRNA", "snoRNA": "ncRNA", "guide_RNA": "ncRNA",
-               "miRNA": "ncRNA"}
+NCRNA_TYPES = {"rRNA": "rRNA", "tRNA": "tRNA", **{b: "ncRNA" for b in (
+    "snRNA", "snoRNA", "guide_RNA", "scaRNA", "miRNA", "SRP_RNA", "RNase_P_RNA", "RNase_MRP_RNA", "telomerase_RNA",
+    "Y_RNA", "vault_RNA")}}
 STOPS = {"TAA", "TAG", "TGA"}
 ATTRIBUTE = re.compile(r'(\S+) "([^"]*)"')
 COMPLEMENT = str.maketrans("ACGTN", "TGCAN")
@@ -97,6 +98,7 @@ def main():
                 log[f"ncRNA contaminant: {t['biotype']}"] += 1
                 continue
             if t["biotype"] != "mRNA":
+                log[f"not used: biotype {t['biotype']}"] += 1
                 continue
             log["mRNA"] += 1
             if t["partial"] or not cds[tx]:
