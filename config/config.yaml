@@ -26,6 +26,18 @@ gel_lengths: [50, 70]
 # molecules (footprints of gel_lengths) or more.
 saturation_gene_molecules: 10
 
+# Motif figure (plots.smk; optional): label -> regular expression on the
+# one-letter amino acids of the CDS, matched in the reading frame. The disome
+# footprints are counted around each match. Without it: the collision motifs of
+# Han et al. 2020 (Cell Rep 31:107610), below.
+# (Commented out: this file is merged into a config given with --configfile, so
+# a motif set here would stay in every run.)
+# motifs:
+#   Pro-Pro: "PP"
+#   Pro-Gly: "PG"
+#   Pro-Asp: "PD"
+#   Arg-X-Lys: "R.K"
+
 # Reference (reference.smk): genome fasta and its GTF annotation (NCBI RefSeq
 # GTF: transcript_biotype, CDS + stop_codon features). One transcript for each
 # protein-coding gene is aligned to; the rRNA, tRNA, snRNA, snoRNA, scaRNA and

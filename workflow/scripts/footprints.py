@@ -20,6 +20,9 @@ import pandas as pd
 REGIONS = ["5' UTR", "CDS", "3' UTR"]
 COUNT = re.compile(r"_x(\d+)_[^_]*$")  # <library>_<rank>_x<count>_<5' random nt>:<3' random nt>
 NOT_PRIMARY_FORWARD = 0x4 | 0x10 | 0x100 | 0x800  # unmapped, reverse, secondary, supplementary
+# standard genetic code: codons in TCAG order -> one-letter amino acids (*: stop)
+CODE = dict(zip((a + b + c for a in "TCAG" for b in "TCAG" for c in "TCAG"),
+                "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"))
 
 
 def read_bam(path):
@@ -82,6 +85,63 @@ def metagene(positions, window):
     inside = positions[(positions >= window[0]) & (positions <= window[1])]
     return pd.Series(np.bincount(inside - window[0], minlength=window[1] - window[0] + 1),
                      index=range(window[0], window[1] + 1))
+
+
+def translate(seq):
+    """The one-letter amino acids of the codons of seq, from its first nt (X: a codon with a letter other than
+    ACGT)."""
+    seq = seq.upper()
+    return "".join(CODE.get(seq[i:i + 3], "X") for i in range(0, len(seq) - 2, 3))
+
+
+def motif_sites(sequences, annotation, motifs, margins):
+    """The sites of each peptide motif in the CDSs: motif label -> table with the columns transcript and anchor
+    (the first nt of the first codon of the match; 0-based, on the transcript). motifs: label -> regular
+    expression on the one-letter amino acids of the CDS (translate; the stop codon excluded), matched in the
+    reading frame; overlapping matches are all sites. Only the sites at least margins[0] nt after the first nt
+    of the start codon and margins[1] nt before the first nt of the stop codon are kept. sequences: transcript ->
+    nucleotide sequence, for each transcript of the annotation."""
+    missing = set(annotation.index) - set(sequences)
+    if missing:
+        raise ValueError(f"{len(missing)} transcripts have no sequence, e.g. {sorted(missing)[0]}")
+    patterns = {label: re.compile(f"(?=(?:{pattern}))") for label, pattern in motifs.items()}
+    rows = {label: [] for label in motifs}
+    for tx, cds_start, cds_end in annotation[["cds_start", "cds_end"]].itertuples():
+        protein = translate(sequences[tx][cds_start:cds_end - 3])
+        for label, pattern in patterns.items():
+            for m in pattern.finditer(protein):
+                anchor = cds_start + 3 * m.start()
+                if anchor - cds_start >= margins[0] and cds_end - 3 - anchor >= margins[1]:
+                    rows[label].append((tx, anchor))
+    return {label: pd.DataFrame(rows[label], columns=["transcript", "anchor"]) for label in motifs}
+
+
+def motif_counts(fp, annotation, sites, window):
+    """The 5' ends of the footprints (annotate) around the sites of a motif (motif_sites), as observed and
+    expected. Observed: the 5' ends at each position of the window (first, last: both included; 0: the anchor),
+    summed over the sites. Expected: the mean 5' ends per nt of the CDS (stop codon included) of the site's
+    transcript, summed over the sites; the observed at each position if the 5' ends were spread evenly on each
+    CDS. Returns the observed (a Series) and the expected."""
+    categories = fp["transcript"].cat.categories
+    site_codes = pd.Categorical(sites["transcript"], categories=categories).codes.astype(np.int64)
+    if (site_codes < 0).any():
+        raise ValueError(f"sites on transcripts that are not references of the footprints, e.g. "
+                         f"{sites['transcript'][site_codes < 0].iloc[0]}")
+    codes = fp["transcript"].cat.codes.to_numpy().astype(np.int64)
+    in_cds = ((fp["to_start"] >= 0) & (fp["to_stop"] < 3)).to_numpy()
+    cds = annotation.loc[sites["transcript"], ["cds_start", "cds_end"]]
+    density = np.bincount(codes[in_cds], minlength=len(categories))[site_codes] / (cds["cds_end"] -
+                                                                                    cds["cds_start"]).to_numpy()
+    # 5' end counts by key transcript code * 2^32 + position; a last key above all others for searchsorted
+    keys, counts = np.unique(codes * 2**32 + fp["start"].to_numpy(), return_counts=True)
+    keys, counts = np.append(keys, np.iinfo(np.int64).max), np.append(counts, 0)
+    anchors = sites["anchor"].to_numpy()
+    observed = pd.Series(0, index=range(window[0], window[1] + 1))
+    for position in observed.index:  # one position at a time: memory grows with the sites only
+        query = site_codes * 2**32 + anchors + position
+        i = np.searchsorted(keys, query)
+        observed[position] = np.where((keys[i] == query) & (anchors + position >= 0), counts[i], 0).sum()
+    return observed, float(density.sum())
 
 
 def saturation(fp, fractions, min_molecules, rng):

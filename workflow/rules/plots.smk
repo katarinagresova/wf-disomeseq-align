@@ -218,3 +218,31 @@ rule plot_positions:
     shell:
         "python {input.script} {input.design} {input.transcripts} {params.disome} {params.prefix} "
         "{params.libraries} 2> {log}"
+
+
+# The disome footprints (gel_lengths) on the main transcripts around the sites
+# of the peptide motifs of config motifs, as observed over expected 5' ends.
+rule plot_motifs:
+    input:
+        files=expand(POSITION_FILES, sample=DESIGN["sample_id"]),
+        transcripts=f"{RESULTS_DIR}/reference/main/transcripts.tsv",
+        sequences=f"{RESULTS_DIR}/reference/main/transcripts.fa",
+        design=f"{RESULTS_DIR}/figures/design.tsv",
+        script=workflow.source_path("../scripts/plot_motifs.py"),
+        style=workflow.source_path("../scripts/plotting.py"),
+        footprints=workflow.source_path("../scripts/footprints.py"),
+    output:
+        multiext(f"{RESULTS_DIR}/figures/disome_motifs", *FIGURE),
+    log:
+        f"{LOG_DIR}/figures/disome_motifs.log",
+    params:
+        motifs=shlex.quote(json.dumps(config["motifs"])),
+        disome="{}-{}".format(*config["gel_lengths"]),
+        prefix=f"{RESULTS_DIR}/figures/disome_motifs",
+        # <sample>:<file>:<file> in POSITION_FILES order
+        libraries=" ".join(":".join([s] + expand(POSITION_FILES, sample=s)) for s in DESIGN["sample_id"]),
+    conda:
+        "../envs/python.yaml"
+    shell:
+        "python {input.script} {input.design} {input.transcripts} {input.sequences} {params.motifs} "
+        "{params.disome} {params.prefix} {params.libraries} 2> {log}"

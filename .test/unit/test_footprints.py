@@ -106,3 +106,44 @@ def test_saturation():
     curve = F.saturation(fp, [0, 0.5, 1], 2, np.random.default_rng(1))
     assert curve.loc[[0, 2], ["reads", "molecules", "transcripts"]].values.tolist() == [[0, 0, 0], [8, 3, 1]]
     assert 0 <= curve.loc[1, "molecules"] <= 3 and 0 <= curve.loc[1, "reads"] <= 8
+
+
+def test_translate():
+    assert F.translate("ATGccaNNNTAAG") == "MPX*"
+
+
+def cds_sequence(length, codons, utr):
+    """A transcript sequence: utr nt, then the CDS (ATG, GCT except the codons {index: codon}, TAA), then utr nt
+    to the length."""
+    cds = ["ATG"] + [codons.get(k, "GCT") for k in range(1, 99)] + ["TAA"]
+    return (utr * 100)[:100] + "".join(cds) + (utr * 100)[:length - 400]
+
+
+def test_motif_sites():
+    # tx1 (CDS 100-400): Pro-Pro-Pro at codons 10-12 (nt 130), Arg-Ala-Lys at codons 20-22 (nt 160), Pro-Pro at
+    # codons 90-91 (nt 370: 27 nt before the stop codon); 5' and 3' UTRs that code Pro-Pro in frame
+    sequences = {"tx1": cds_sequence(600, {10: "CCA", 11: "CCG", 12: "CCT", 20: "CGT", 22: "AAA", 90: "CCC",
+                                           91: "CCC"}, "CCA"),
+                 "tx2": "A" * 50 + "ATG" + "GCT" * 48 + "TAG" + "A" * 100}
+    sites = F.motif_sites(sequences, ANNOTATION, {"PP": "PP", "RXK": "R.K"}, (30, 30))
+    assert list(sites) == ["PP", "RXK"]
+    assert sites["PP"].values.tolist() == [["tx1", 130], ["tx1", 133]]  # overlapping matches; not 370
+    assert sites["RXK"].values.tolist() == [["tx1", 160]]
+    assert F.motif_sites(sequences, ANNOTATION, {"PP": "PP"}, (0, 0))["PP"]["anchor"].tolist() == [130, 133, 370]
+    with pytest.raises(ValueError):
+        F.motif_sites({"tx1": sequences["tx1"]}, ANNOTATION, {"PP": "PP"}, (30, 30))
+
+
+def test_motif_counts():
+    # CDS 5' ends: tx1 (300 nt) 195 (2 molecules), 250, 260; tx2 (150 nt) 120. Not in a CDS: tx1 50, tx2 200
+    fp = F.annotate(table([("tx1", 195, 60, 1), ("tx1", 195, 60, 5), ("tx1", 250, 60, 1), ("tx1", 260, 60, 1),
+                           ("tx1", 50, 60, 1), ("tx2", 120, 60, 1), ("tx2", 200, 60, 1)]), ANNOTATION)
+    sites = pd.DataFrame({"transcript": ["tx1", "tx1", "tx2"], "anchor": [200, 250, 120]})
+    observed, expected = F.motif_counts(fp, ANNOTATION, sites, (-5, 5))
+    assert list(observed.index) == list(range(-5, 6))
+    assert (observed[-5], observed[0], observed.sum()) == (2, 2, 4)  # molecules; tx2 200 is not at tx1 200
+    assert expected == pytest.approx(4 / 300 + 4 / 300 + 1 / 150)
+    observed, expected = F.motif_counts(fp, ANNOTATION, sites.iloc[:0], (-5, 5))
+    assert (observed.sum(), expected) == (0, 0)
+    with pytest.raises(ValueError):
+        F.motif_counts(fp, ANNOTATION, pd.DataFrame({"transcript": ["tx3"], "anchor": [0]}), (-5, 5))

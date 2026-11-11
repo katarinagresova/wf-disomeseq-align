@@ -47,6 +47,18 @@ properties:
     type: integer
     minimum: 1
     description: disome molecules for a gene to be covered (saturation figure)
+  motifs:
+    type: object
+    description: motif figure, label -> regular expression on the amino acids of the CDS (one-letter codes)
+    minProperties: 1
+    additionalProperties:
+      type: string
+      minLength: 1
+    default:
+      Pro-Pro: PP
+      Pro-Gly: PG
+      Pro-Asp: PD
+      Arg-X-Lys: R.K
   genome_fa:
     type: string
   annotation_gtf:

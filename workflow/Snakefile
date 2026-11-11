@@ -27,3 +27,4 @@ rule all:
         multiext(f"{RESULTS_DIR}/figures/disome_regions", *FIGURE),
         multiext(f"{RESULTS_DIR}/figures/disome_frames", *FIGURE),
         multiext(f"{RESULTS_DIR}/figures/disome_length_qc", *FIGURE),
+        multiext(f"{RESULTS_DIR}/figures/disome_motifs", *FIGURE),
