@@ -9,5 +9,5 @@ properties:
     type: string
   condition:
     type: string
-    description: library preparation or treatment; the comparison groups libraries by it
+    description: library preparation or treatment
 required: [sample_id, fastq_1, condition]

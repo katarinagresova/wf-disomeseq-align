@@ -7,8 +7,6 @@ include: "rules/trim.smk"
 include: "rules/reference.smk"
 include: "rules/contaminants.smk"
 include: "rules/align.smk"
-include: "rules/qc.smk"
-include: "rules/compare.smk"
 include: "rules/fastqc.smk"
 include: "rules/multiqc.smk"
 
@@ -18,4 +16,3 @@ rule all:
         expand(f"{RESULTS_DIR}/bowtie/{{sample}}.bam", sample=samples.index),
         expand(f"{RESULTS_DIR}/fastqc/{{stage}}/{{sample}}_fastqc.html", stage=["raw", "trimmed"], sample=samples.index),
         f"{RESULTS_DIR}/multiqc/multiqc_report.html",
-        f"{RESULTS_DIR}/compare/report.pdf",

@@ -15,7 +15,7 @@ randomer_5p: 4
 randomer_3p: 4
 minlength: 25
 
-# Footprint lengths (nt) of disomes, used by the QC and the comparison:
+# Footprint lengths (nt) of disomes:
 # disome_lengths are counted as disome footprints, gel_lengths is the size
 # range cut from the gel.
 disome_lengths: [45, 75]
@@ -28,9 +28,9 @@ gel_lengths: [50, 70]
 genome_fa: "/path/to/genome.fa"
 annotation_gtf: "/path/to/annotation.gtf"
 
-# More contaminants (contaminants.smk), by type: the type names the read class
-# in the QC. Both strands of each sequence are added (mtDNA is transcribed
-# from both).
+# More contaminants (contaminants.smk), by type: the type is the read class of
+# the reads that align to them. Both strands of each sequence are added (mtDNA
+# is transcribed from both).
 contaminant_fastas:
   mt: ["/path/to/mtDNA.fa"]
   rRNA: ["/path/to/rDNA.fa"]

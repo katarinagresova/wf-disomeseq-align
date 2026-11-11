@@ -1,33 +1,10 @@
 # MultiQC config for rule multiqc (rules/multiqc.smk). The raw and trimmed
 # FastQC report the same sample names, so each gets its own section, selected
-# by path. qc_summary's tables (one row per library, sample = first column) are
-# custom content.
+# by path.
 no_version_check: true
 # cutadapt: name after its log (<sample>.log), not after the fastq it read
 use_filename_as_sample_name:
   - cutadapt
-custom_data:
-  read_fates:
-    section_name: "Read fates"
-    description: >-
-      qc_summary: each sequenced read by its fate. no_adapter, adapter_dimer and too_short are removed
-      before the alignment; the others are the classes of assign_reads.py. Reads, not molecules.
-    plot_type: bargraph
-    pconfig:
-      id: read_fates_plot
-      title: "Read fates"
-      ylab: "Reads"
-  qc_summary:
-    section_name: "QC summary"
-    description: >-
-      qc_summary: one row per library. Molecules are collapsed reads (no PCR duplicates); usable are
-      CDS footprints of disome length.
-    plot_type: table
-sp:
-  read_fates:
-    fn: "read_fates.tsv"
-  qc_summary:
-    fn: "summary.tsv"
 module_order:
   - fastqc:
       name: "FastQC: raw"
@@ -35,8 +12,6 @@ module_order:
       path_filters:
         - "*/fastqc/raw/*"
   - cutadapt
-  # read_fates, qc_summary (custom_data)
-  - custom_content
   - fastqc:
       name: "FastQC: trimmed"
       anchor: fastqc_trimmed
