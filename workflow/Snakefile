@@ -9,6 +9,7 @@ include: "rules/contaminants.smk"
 include: "rules/align.smk"
 include: "rules/fastqc.smk"
 include: "rules/multiqc.smk"
+include: "rules/plots.smk"
 
 
 rule all:
@@ -16,3 +17,6 @@ rule all:
         expand(f"{RESULTS_DIR}/bowtie/{{species}}/{{sample}}.bam", species=SPECIES, sample=samples.index),
         expand(f"{RESULTS_DIR}/fastqc/{{stage}}/{{sample}}_fastqc.html", stage=["raw", "trimmed"], sample=samples.index),
         f"{RESULTS_DIR}/multiqc/multiqc_report.html",
+        multiext(f"{RESULTS_DIR}/figures/read_depth", *FIGURE),
+        multiext(f"{RESULTS_DIR}/figures/read_classes_percent", *FIGURE),
+        multiext(f"{RESULTS_DIR}/figures/read_classes_reads", *FIGURE),

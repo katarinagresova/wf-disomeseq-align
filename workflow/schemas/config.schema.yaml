@@ -54,6 +54,30 @@ properties:
         type: string
     required: [genome_fa, annotation_gtf]
     additionalProperties: false
+  design:
+    type: object
+    description: experimental design, for the plots
+    properties:
+      replicate:
+        type: string
+        description: samples.tsv column with the biological replicate
+      factors:
+        type: object
+        description: factor (a samples.tsv column) -> {level -> label}, levels in plot order
+        additionalProperties:
+          type: object
+          minProperties: 1
+          additionalProperties:
+            type: string
+    additionalProperties: false
+  read_classes:
+    type: object
+    description: plot label -> read classes of assign_reads.py, in stack order
+    additionalProperties:
+      type: array
+      minItems: 1
+      items:
+        type: string
   contaminant_fastas:
     type: object
     description: contaminant type -> list of fasta paths

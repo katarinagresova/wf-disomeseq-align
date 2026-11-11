@@ -4,10 +4,11 @@ type: object
 properties:
   sample_id:
     type: string
-    pattern: "^[^/]+$"
+    # part of read names (no whitespace) and of the rules' <sample>:<file> arguments (no colon)
+    pattern: "^[A-Za-z0-9._-]+$"
   fastq_1:
     type: string
   condition:
     type: string
-    description: library preparation or treatment
+    description: library preparation or treatment; the plots group libraries by it
 required: [sample_id, fastq_1, condition]

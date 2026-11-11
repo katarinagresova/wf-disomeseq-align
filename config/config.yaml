@@ -36,6 +36,32 @@ annotation_gtf: "/path/to/annotation.gtf"
 #   genome_fa: "/path/to/spike_in_genome.fa"
 #   annotation_gtf: "/path/to/spike_in_annotation.gtf"
 
+# Experimental design, for the plots (plots.smk; optional). replicate: the
+# samples.tsv column with the biological replicate. factors: samples.tsv
+# columns, each with its levels in plot order and a label for each level (quote
+# levels that look like numbers). Each condition of samples.tsv must be one
+# combination of factor levels. Without a design, the plots keep the order of
+# samples.tsv.
+# design:
+#   replicate: replicate
+#   factors:
+#     treatment:
+#       A: "treatment A"
+#       B: "treatment B"
+
+# Read classes in the plots (plots.smk; optional): plot label -> read classes
+# of the alignment (transcript, spike_in, multi, unaligned and the contaminant
+# types: rRNA, tRNA, ncRNA, the types of contaminant_fastas, and spikeintRNA,
+# spikeinncRNA with a spike-in), in stack order. At most 8 coloured groups; a
+# group of only unaligned is grey; classes in no group are drawn as "other".
+# Without it, each class is drawn on its own.
+# read_classes:
+#   mRNA: [transcript]
+#   multi-mapping: [multi]
+#   rRNA: [rRNA]
+#   tRNA and other ncRNA: [tRNA, ncRNA, mt]
+#   not aligned: [unaligned]
+
 # More contaminants (contaminants.smk), by type: the type is the read class of
 # the reads that align to them. Both strands of each sequence are added (mtDNA
 # is transcribed from both).

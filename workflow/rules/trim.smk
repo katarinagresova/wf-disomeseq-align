@@ -7,7 +7,7 @@ rule cutadapt_reads:
         lambda wc: samples.loc[wc.sample, "fastq_1"],
     output:
         temp(f"{RESULTS_DIR}/cutadapt_reads/{{sample}}.fastq.gz"),
-    # cutadapt's report; rule multiqc reads it
+    # cutadapt's report; rules multiqc and plot_read_depth read it
     log:
         f"{LOG_DIR}/cutadapt/{{sample}}.log",
     params:
@@ -29,7 +29,7 @@ rule cutadapt_reads:
 
 # Collapse BEFORE removing the random nt: they are part of the sequence here,
 # so identical footprints with different random nt stay distinct molecules.
-# The log has the read counts and lengths (with the random nt).
+# The log has the read counts and lengths (with the random nt) for plot_read_depth.
 rule collapse_reads:
     input:
         fastq=f"{RESULTS_DIR}/cutadapt_reads/{{sample}}.fastq.gz",
