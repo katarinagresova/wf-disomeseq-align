@@ -1,9 +1,13 @@
-"""Shared plot style and helpers for the plot_*.py scripts (plots.smk).
+"""Shared plot style and helpers for the plot_*.py scripts (plots.smk). The computations on footprints are in
+footprints.py.
 
 Colours: the categorical palette below is validated for colour-vision deficiency in this order, for marks that
 touch (stacks, bars, lines); give series its slots in order, never cycled. Text uses the ink colours, never a
 series colour.
 """
+import re
+import sys
+from collections import Counter
 from pathlib import Path
 
 import matplotlib
@@ -11,13 +15,21 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 INK, INK2, MUTED = "#0b0b0b", "#52514e", "#898781"
 GRID, AXIS = "#e1e0d9", "#c3c2b7"
 CATEGORICAL = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"]
+# sequential (magnitude, e.g. a heatmap): one hue, light (low) to dark (high)
+SEQUENTIAL = ["#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef", "#6da7ec", "#5598e7", "#3987e5", "#2a78d6", "#256abf",
+              "#1c5cab", "#184f95", "#104281", "#0d366b"]
 # label colour inside a fill: near-black on yellow, white on the other slots
 LABEL_ON = {c: (INK if c == "#eda100" else "white") for c in CATEGORICAL}
+# axis and tick labels of the figures with panels of lines (saturation, metagene): larger, for slides
+AXIS_LABEL_SIZE, TICK_LABEL_SIZE = 13, 11.5
+# libraries of the same condition in one panel
+STYLES = ["-", "--", ":", "-."]
 
 plt.rcParams.update({
     "font.family": "sans-serif", "font.sans-serif": ["Nimbus Sans", "Helvetica", "Arial", "DejaVu Sans"],
@@ -34,6 +46,51 @@ plt.rcParams.update({
 def read_design(path):
     """design.tsv (rule design_table): one row for each library, in plot order."""
     return pd.read_csv(path, sep="\t", dtype=str, keep_default_na=False)
+
+
+def condition_colors(design):
+    """Colour of each condition, in design order: the palette slots in order, the same in every figure."""
+    conditions = list(design.sort_values("condition_order", key=lambda o: o.astype(int))["condition"].unique())
+    if len(conditions) > len(CATEGORICAL):
+        sys.exit(f"{len(conditions)} conditions: at most {len(CATEGORICAL)} colours")
+    return {c: CATEGORICAL[i] for i, c in enumerate(conditions)}
+
+
+def line_styles(design):
+    """Line style of each library: solid, then dashed, ... for the libraries of one condition and replicate."""
+    style, seen = {}, Counter()
+    for r in design.itertuples():
+        style[r.sample_id] = STYLES[seen[r.replicate, r.condition] % len(STYLES)]
+        seen[r.replicate, r.condition] += 1
+    return style
+
+
+def condition_legend(fig, design, color):
+    """Legend of the condition colours, above the panels."""
+    labels = design.drop_duplicates("condition").set_index("condition")["condition_label"]
+    handles = [Line2D([], [], color=c, linewidth=2) for c in color.values()]
+    names = [c if labels[c] == c else f"{c}: {labels[c]}" for c in color]
+    fig.legend(handles, names, loc="outside upper left", ncol=2, handlelength=1.6, fontsize=9.5)
+
+
+def sequenced_reads(cutadapt_log):
+    """The sequenced reads of a library: Total reads processed of its cutadapt log."""
+    with open(cutadapt_log) as f:
+        for line in f:
+            m = re.match(r"Total reads processed:\s+([\d,]+)", line)
+            if m:
+                return int(m.group(1).replace(",", ""))
+    sys.exit(f"{cutadapt_log}: no 'Total reads processed'")
+
+
+def check_footprints(fp, bam_path, counts_tsv):
+    """Exits unless the footprint table of a main BAM (footprints.read_bam) has the molecules and reads of class
+    transcript in its counts.tsv (assign_reads.py)."""
+    counts = pd.read_csv(counts_tsv, sep="\t")
+    expected = counts[counts["class"] == "transcript"][["molecules", "reads"]].sum()
+    if (len(fp), fp["reads"].sum()) != (expected["molecules"], expected["reads"]):
+        sys.exit(f"{bam_path}: {len(fp)} molecules, {fp['reads'].sum()} reads; {counts_tsv} (transcript): "
+                 f"{expected['molecules']} molecules, {expected['reads']} reads")
 
 
 def round_ticks(axis, n=6):

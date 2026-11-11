@@ -15,11 +15,16 @@ randomer_5p: 4
 randomer_3p: 4
 minlength: 25
 
-# Footprint lengths (nt) of disomes:
-# disome_lengths are counted as disome footprints, gel_lengths is the size
-# range cut from the gel.
+# Footprint lengths (nt): monosome_lengths and disome_lengths are counted as
+# monosome and disome footprints, gel_lengths is the size range cut from the
+# gel.
+monosome_lengths: [26, 34]
 disome_lengths: [45, 75]
 gel_lengths: [50, 70]
+
+# Saturation figure (plots.smk): a gene is covered with this many disome
+# molecules (footprints of gel_lengths) or more.
+saturation_gene_molecules: 10
 
 # Reference (reference.smk): genome fasta and its GTF annotation (NCBI RefSeq
 # GTF: transcript_biotype, CDS + stop_codon features). One transcript for each

@@ -34,12 +34,19 @@ properties:
     type: integer
     minimum: 1
     description: shortest footprint (random nt removed) that is aligned
+  monosome_lengths:
+    $ref: "#/definitions/length_range"
+    description: shortest and longest monosome footprint
   disome_lengths:
     $ref: "#/definitions/length_range"
     description: shortest and longest disome footprint
   gel_lengths:
     $ref: "#/definitions/length_range"
     description: footprint lengths cut from the gel
+  saturation_gene_molecules:
+    type: integer
+    minimum: 1
+    description: disome molecules for a gene to be covered (saturation figure)
   genome_fa:
     type: string
   annotation_gtf:
@@ -89,5 +96,5 @@ properties:
       items:
         type: string
     default: {}
-required: [samples, adapter, randomer_5p, randomer_3p, minlength, disome_lengths, gel_lengths, genome_fa,
-           annotation_gtf]
+required: [samples, adapter, randomer_5p, randomer_3p, minlength, monosome_lengths, disome_lengths, gel_lengths,
+           saturation_gene_molecules, genome_fa, annotation_gtf]
